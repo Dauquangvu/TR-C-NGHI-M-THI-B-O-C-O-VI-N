@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trắc nghiệm</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+    font-size: 18px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+h2 {
+    text-align: center;
+}
+
+.question {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+button {
+    width: 100%;
+    margin: 6px 0;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    text-align: left;
+    background: #eef1f5;
+    transition: 0.3s;
+    font-size: 17px;
+}
+
+button:hover {
+    background: #dfe6ee;
+}
+
+.correct {
+    background: #c8f7c5 !important;
+    color: green;
+    font-weight: bold;
+}
+
+.wrong {
+    background: #f7c5c5 !important;
+    color: red;
+    font-weight: bold;
+}
+
+.score {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#timer {
+    color: #ff5722;
+}
+
+.progress {
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    height: 10px;
+    width: 0%;
+    background: #4CAF50;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>Bài trắc nghiệm</h2>
+
+<div class="score" id="score">Điểm: 0</div>
+<div class="score" id="timer">Thời gian: 0s</div>
+
+<div class="progress">
+    <div class="progress-bar" id="progress"></div>
+</div>
+
+<div id="quiz"></div>
+</div>
+
+<script>
+
+// 🔊 Âm thanh
+const soundCorrect = new Audio("https://www.soundjay.com/buttons/sounds/button-4.mp3");
+const soundWrong = new Audio("https://www.soundjay.com/buttons/sounds/button-10.mp3");
+
+// ⏱️ Timer
+let time = 0;
+setInterval(() => {
+    time++;
+    document.getElementById("timer").innerText = "Thời gian: " + time + "s";
+}, 1000);
+
+// 🔀 Shuffle
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+let score = 0;
+let answered = 0;
+
+// 📌 DÁN CÂU HỎI VÀO ĐÂY
+const questions = [
+
+{
+q: "Đồng chí cho biết Thủ đoạn chiến lược “diễn biến hòa bình” của các thế lực thù địch chống phá cách mạng Việt Nam là gì?",
+answers: [
+"Chống phá trên lĩnh vực chính trị; chống phá trên lĩnh vực tư tưởng, văn hóa; chống phá trên lĩnh vực xã hội; chống phá trên lĩnh vực quốc phòng, an ninh; chống phá trên lĩnh vực đối ngoại",
+"Chống phá trên lĩnh vực chính trị; chống phá trên lĩnh vực kinh tế; chống phá trên lĩnh vực tư tưởng, văn hóa; chống phá trên lĩnh vực xã hội; chống phá trên lĩnh vực quốc phòng, an ninh",
+"Chống phá trên lĩnh vực chính trị; chống phá trên lĩnh vực kinh tế; chống phá trên lĩnh vực tư tưởng, văn hóa; chống phá trên lĩnh vực quốc phòng, an ninh; chống phá trên lĩnh vực đối ngoại",
+"Chống phá trên lĩnh vực chính trị; chống phá trên lĩnh vực kinh tế; chống phá trên lĩnh vực tư tưởng, văn hóa; chống phá trên lĩnh vực xã hội; chống phá trên lĩnh vực quốc phòng, an ninh; chống phá trên lĩnh vực đối ngoại"
+],
+correct: 3
+},
+
+{
+q: "Đồng chí cho biết Nghị quyết Đại hội đại biểu toàn quốc lần thứ XIII của Đảng xác định mục tiêu cụ thể của nước ta đến năm 2025 là gì?",
+answers: [
+"Kỷ niệm 50 năm giải phóng hoàn toàn Miền Nam, thống nhất đất nước: Là nước đang phát triển, có công nghiệp hiện đại, có thu nhập trung bình thấp",
+"Kỷ niệm 50 năm giải phóng hoàn toàn Miền Nam, thống nhất đất nước: Là nước đang phát triển, có công nghiệp theo hướng hiện đại, vượt qua mức thu nhập trung bình thấp",
+"Kỷ niệm 50 năm giải phóng hoàn toàn Miền Nam, thống nhất đất nước: Là nước phát triển, có công nghiệp hiện đại, thu nhập trung bình cao",
+"Kỷ niệm 50 năm giải phóng hoàn toàn Miền Nam, thống nhất đất nước: Là nước đang phát triển, có công nghiệp theo hướng hiện đại, có mức thu nhập trung bình cao"
+],
+correct: 1
+},
+
+{
+q: "Đồng chí cho biết chức năng của công tác tuyên truyền miệng ?",
+answers: [
+"Phổ biến thông tin. Định hướng tư tưởng. Hướng dẫn hành động",
+"Phổ biến thông tin. Định hướng tư tưởng. Cổ vũ hành động",
+"Phổ biến thông tin. Định hướng nhận thức. Cổ vũ hành động",
+"Phổ biến thông tin. Định hướng nhận thức. Hướng dẫn hành động"
+],
+correct: 1
+},
+
+{
+q: "Đồng chí cho biết Chỉ thị số 366/CT-ĐU của Ban Thường vụ Đảng ủy Sư đoàn về xây dựng “chi bộ bốn tốt”, “đảng bộ cơ sở bốn tốt\" xác định bao nhiêu nhiệm vụ, giải pháp?",
+answers: [
+"4 nhiệm vụ, giải pháp",
+"5 nhiệm vụ, giải pháp",
+"6 nhiệm vụ, giải pháp",
+"7 nhiệm vụ, giải pháp"
+],
+correct: 1
+},
+
+{
+q: "Đồng chí cho biết tên gọi Kết luận số 21-KL/TW của Ban Chấp hành Trung ương Đảng khóa XIII là gì?",
+answers: [
+"Về đẩy mạnh xây dựng, chỉnh đốn đảng; kiên quyết ngăn chặn, đẩy lùi, xử lý nghiêm cán bộ, đảng viên suy thoái về tư tưởng chính trị, đạo đức, lối sống, biểu hiện “tự diễn biến”, “tự chuyển hoá”.",
+"Về đẩy mạnh xây dựng, chỉnh đốn đảng và hệ thống chính trị; ngăn chặn, đẩy lùi, xử lý nghiêm cán bộ, đảng viên suy thoái về tư tưởng chính trị, đạo đức, lối sống, biểu hiện “tự diễn biến”, “tự chuyển hoá”.",
+"Về đẩy mạnh xây dựng, chỉnh đốn đảng và hệ thống chính trị; kiên quyết ngăn chặn, đẩy lùi, xử lý nghiêm cán bộ, đảng viên suy thoái về tư tưởng chính trị, đạo đức, lối sống, biểu hiện “tự diễn biến”, “tự chuyển hoá”.",
+"Về đẩy mạnh xây dựng, chỉnh đốn đảng và hệ thống chính trị; kiên quyết đẩy lùi, xử lý nghiêm cán bộ, đảng viên suy thoái về tư tưởng chính trị, đạo đức, lối sống, biểu hiện “tự diễn biến”, “tự chuyển hoá”."
+],
+correct: 2
+},
+
+{
+q: "Đồng chí cho biết Quy định số 144-QĐ/TW ngày 09/5/2024 của Bộ Chính trị về chuẩn mực đạo đức cách mạng của cán bộ, đảng viên trong giai đoạn mới có mấy nội dung cơ bản?",
+answers: [
+"04 nội dung",
+"05 nội dung",
+"06 nội dung",
+"07 nội dung"
+],
+correct: 1
+},
+
+{
+q: "Đồng chí cho biết có mấy nguyên tắc tiến hành công tác tuyên truyền miệng?",
+answers: [
+"04 nhiệm vụ",
+"05 nhiệm vụ",
+"06 nhiệm vụ",
+"10 nhiệm vụ"
+],
+correct: 1
+},
+
+{
+q: "Đồng chí khái niệm của công tác tuyên truyền miệng là gì?",
+answers: [
+"Tuyên truyền miệng là một hình thức tuyên truyền được tiến hành thông qua sự giao tiếp trực tiếp giữa người nói (người tuyên truyền) với người nghe (đối tượng tuyên truyền).",
+"Tuyên truyền miệng là một hình thức tuyên truyền được tiến hành thông qua sự giao tiếp bằng lời nói trực tiếp giữa người nói (nhà tuyên truyền) với người nghe (đối tượng tuyên truyền).",
+"Tuyên truyền miệng là một hình thức tuyên truyền được tiến hành thông qua sự giao tiếp thực tiễn bằng lời nói trực tiếp giữa người nói (nhà tuyên truyền) với người nghe (đối tượng tuyên truyền).",
+"Tuyên truyền miệng là một hình thức tuyên truyền được tiến hành thông qua nói chuyện bằng lời nói trực tiếp giữa người nói (nhà tuyên truyền) với người nghe (đối tượng tuyên truyền)."
+],
+correct: 1
+},
+
+{
+q: "Đồng chí cho biết chức năng Phòng Hồ Chí Minh theo Quy chế tổ chức hoạt động của các thiết chế văn hóa trong Quân đội nhân dân Việt Nam?",
+answers: [
+"Tổ chức các hoạt động văn hoá - văn nghệ phục vụ nhiệm vụ chính trị của đơn vị và nhu cầu đời sống văn hóa, tinh thần của bộ đội",
+"Hướng dẫn, tổ chức các hoạt động văn hoá - văn nghệ phục vụ nhiệm vụ chính trị của đơn vị và nhu cầu đời sống văn hóa, tinh thần của bộ đội.",
+"Chỉ đạo, tổ chức các hoạt động văn hoá - văn nghệ phục vụ nhiệm vụ chính trị của đơn vị và nhu cầu đời sống văn hóa, tinh thần của bộ đội.",
+"Tham gia, tổ chức, hướng dẫn các hoạt động văn hoá - văn nghệ phục vụ nhiệm vụ chính trị của đơn vị và nhu cầu đời sống văn hóa, tinh thần của bộ đội."
+],
+correct: 1
+},
+
+{
+q: "Đồng chí cho biết báo cáo viên kiêm nhiệm ở cấp tiểu đoàn, đại đội và đương đương là ai?",
+answers: [
+"Chính trị viên đảm nhiệm",
+"Chính trị viên hoặc Chính trị viên phó đảm nhiệm",
+"Bí thư Đảng ủy (chi bộ) đảm nhiệm",
+"Bí thư hoặc phó bí thư Đảng ủy (chi bộ) đảm nhiệm"
+],
+correct: 1
+}
+
+];
+
+// 🔀 Trộn câu hỏi
+shuffle(questions);
+
+const quizDiv = document.getElementById("quiz");
+
+// 👉 Render
+questions.forEach((q, index) => {
+
+    const div = document.createElement("div");
+    div.classList.add("question");
+
+    const title = document.createElement("p");
+    title.innerHTML = "<b>Câu " + (index + 1) + ":</b> " + q.q;
+    div.appendChild(title);
+
+    // 👉 Trộn đáp án
+    let answers = q.answers.map((a,i)=>({
+        text: a,
+        correct: i === q.correct
+    }));
+
+    shuffle(answers);
+
+    answers.forEach((ans, i) => {
+
+        const btn = document.createElement("button");
+        btn.innerText = String.fromCharCode(65+i) + ". " + ans.text;
+
+        btn.onclick = () => {
+
+            if(div.classList.contains("done")) return;
+            div.classList.add("done");
+
+            answered++;
+
+            if(ans.correct){
+                soundCorrect.play();
+                btn.classList.add("correct");
+                btn.innerText += " ✅";
+                score++;
+            } else {
+                soundWrong.play();
+                btn.classList.add("wrong");
+                btn.innerText += " ❌";
+
+                const buttons = div.querySelectorAll("button");
+                answers.forEach((a, idx) => {
+                    if(a.correct){
+                        buttons[idx].classList.add("correct");
+                        buttons[idx].innerText += " ⭐";
+                    }
+                });
+            }
+
+            document.getElementById("score").innerText =
+                "Điểm: " + score + "/" + questions.length;
+
+            document.getElementById("progress").style.width =
+                (answered / questions.length * 100) + "%";
+        };
+
+        div.appendChild(btn);
+    });
+
+    quizDiv.appendChild(div);
+});
+
+</script>
+
+</body>
+</html>

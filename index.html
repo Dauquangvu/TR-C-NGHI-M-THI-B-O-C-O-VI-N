@@ -9,7 +9,6 @@
 body {
     font-family: Arial;
     background: #f4f6f9;
-    margin: 0;
     padding: 20px;
     font-size: 18px;
 }
@@ -19,68 +18,28 @@ body {
     margin: auto;
 }
 
-h2 {
-    text-align: center;
-}
-
 .question {
-    background: #fff;
+    background: white;
     padding: 15px;
-    border-radius: 10px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    border-radius: 10px;
 }
 
 button {
     width: 100%;
-    margin: 6px 0;
     padding: 12px;
-    border: none;
-    border-radius: 8px;
-    text-align: left;
-    background: #eef1f5;
-    transition: 0.3s;
+    margin: 5px 0;
     font-size: 17px;
+    border-radius: 8px;
+    border: none;
+    background: #eef1f5;
 }
 
-button:hover {
-    background: #dfe6ee;
-}
+.correct { background: #c8f7c5; }
+.wrong { background: #f7c5c5; }
 
-.correct {
-    background: #c8f7c5 !important;
-    color: green;
-    font-weight: bold;
-}
-
-.wrong {
-    background: #f7c5c5 !important;
-    color: red;
-    font-weight: bold;
-}
-
-.score {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-#timer {
-    color: #ff5722;
-}
-
-.progress {
-    background: #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.progress-bar {
-    height: 10px;
-    width: 0%;
-    background: #4CAF50;
-}
+.score { text-align: center; font-weight: bold; }
+#timer { color: red; }
 </style>
 </head>
 
@@ -90,29 +49,49 @@ button:hover {
 <h2>Bài trắc nghiệm</h2>
 
 <div class="score" id="score">Điểm: 0</div>
-<div class="score" id="timer">Thời gian: 0s</div>
-
-<div class="progress">
-    <div class="progress-bar" id="progress"></div>
-</div>
+<div class="score" id="timer">Thời gian: 00:00:00</div>
 
 <div id="quiz"></div>
 </div>
 
+<!-- 🔊 ÂM THANH -->
+<audio id="sound-correct" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="sound-wrong" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
 <script>
 
-// 🔊 Âm thanh
-const soundCorrect = new Audio("https://www.soundjay.com/buttons/sounds/button-4.mp3");
-const soundWrong = new Audio("https://www.soundjay.com/buttons/sounds/button-10.mp3");
+// 🔊 ÂM THANH
+const soundCorrect = document.getElementById("sound-correct");
+const soundWrong = document.getElementById("sound-wrong");
 
-// ⏱️ Timer
+// 👉 mở khóa âm thanh (QUAN TRỌNG CHO ĐIỆN THOẠI)
+document.body.addEventListener("click", () => {
+    soundCorrect.play().catch(()=>{});
+    soundWrong.play().catch(()=>{});
+}, { once: true });
+
+
+// ⏱️ TIMER 00:00:00
 let time = 0;
+
+function formatTime(t){
+    let h = Math.floor(t / 3600);
+    let m = Math.floor((t % 3600) / 60);
+    let s = t % 60;
+
+    return String(h).padStart(2,'0') + ":" +
+           String(m).padStart(2,'0') + ":" +
+           String(s).padStart(2,'0');
+}
+
 setInterval(() => {
     time++;
-    document.getElementById("timer").innerText = "Thời gian: " + time + "s";
+    document.getElementById("timer").innerText =
+        "Thời gian: " + formatTime(time);
 }, 1000);
 
-// 🔀 Shuffle
+
+// 🔀 TRỘN
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -121,9 +100,11 @@ function shuffle(array) {
 }
 
 let score = 0;
-let answered = 0;
 
-// 📌 DÁN CÂU HỎI VÀO ĐÂY
+
+// =============================
+// 🔥 CHỈ SỬA ĐOẠN NÀY
+// =============================
 const questions = [
 
 {
@@ -237,13 +218,14 @@ correct: 1
 }
 
 ];
+// =============================
 
-// 🔀 Trộn câu hỏi
+
+// 🔀 TRỘN CÂU HỎI
 shuffle(questions);
 
 const quizDiv = document.getElementById("quiz");
 
-// 👉 Render
 questions.forEach((q, index) => {
 
     const div = document.createElement("div");
@@ -253,7 +235,6 @@ questions.forEach((q, index) => {
     title.innerHTML = "<b>Câu " + (index + 1) + ":</b> " + q.q;
     div.appendChild(title);
 
-    // 👉 Trộn đáp án
     let answers = q.answers.map((a,i)=>({
         text: a,
         correct: i === q.correct
@@ -271,32 +252,28 @@ questions.forEach((q, index) => {
             if(div.classList.contains("done")) return;
             div.classList.add("done");
 
-            answered++;
-
             if(ans.correct){
+                soundCorrect.currentTime = 0;
                 soundCorrect.play();
+
                 btn.classList.add("correct");
-                btn.innerText += " ✅";
                 score++;
             } else {
+                soundWrong.currentTime = 0;
                 soundWrong.play();
+
                 btn.classList.add("wrong");
-                btn.innerText += " ❌";
 
                 const buttons = div.querySelectorAll("button");
                 answers.forEach((a, idx) => {
                     if(a.correct){
                         buttons[idx].classList.add("correct");
-                        buttons[idx].innerText += " ⭐";
                     }
                 });
             }
 
             document.getElementById("score").innerText =
                 "Điểm: " + score + "/" + questions.length;
-
-            document.getElementById("progress").style.width =
-                (answered / questions.length * 100) + "%";
         };
 
         div.appendChild(btn);
